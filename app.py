@@ -2,7 +2,7 @@ from logic import *
 
 # current_post = []
 
-telegram_bot_token = "6346062239:AAF6xZa93p6J_-DrT9c1k0pWqczbHDfopRg"
+telegram_bot_token = ""
 
 updater = Updater(token=telegram_bot_token, use_context=True)
 dispatcher = updater.dispatcher
@@ -91,6 +91,13 @@ def button_callback(update, context):
         # add_tags(update, context)
     elif callback_data.startswith("done_ph"):
         done_ph(update, context)
+    # elif callback_data.startswith("append_desc"):
+        
+    
+# "save_desc_to_cp"),
+#  InlineKeyboardButton("Append more", callback_data="append_desc"),
+#  InlineKeyboardButton("Write a new one", callback_data="new_desc"),
+#  InlineKeyboardButton("Delete", callback_data="delete_desc"
         
 
         
