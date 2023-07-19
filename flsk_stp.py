@@ -7,12 +7,13 @@ import os
 from werkzeug.utils import secure_filename
 from flask_admin.helpers import url_for
 from flask_admin.model.template import macro
+from config_loader import *
 
 UPLOAD_FOLDER = './media'
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'mp4'}
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = ""
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db = SQLAlchemy(app)
@@ -23,10 +24,6 @@ def allowed_file(filename):
 
 
 
-
-
-
-# Custom route for handling admin panel form submission
 @app.route('/admin/create_post/', methods=['POST'])
 def admin_create_post():
     description = request.form.get('description')

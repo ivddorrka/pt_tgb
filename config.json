@@ -1,0 +1,7 @@
+{
+    "telegram_bot_token": "6346062239:AAF6xZa93p6J_-DrT9c1k0pWqczbHDfopRg",
+    "admin_ids": [542430395],
+    "SQLALCHEMY_DATABASE_URI": "mysql+pymysql://root:Qazwsx123#@localhost/posterroster",
+    "SECRET_KEY": "your_secret_key"
+  }
+  

@@ -1,13 +1,17 @@
 from logic import *
-
+from config_loader import telegram_bot_token, admin_ids
 # current_post = []
 
-telegram_bot_token = ""
+# telegram_bot_token = os.environ.get('telegram_bot_token')
 url_tag_search = 'http://127.0.0.1:5000/search_posts_by_tags'
 url_desc_search = 'http://127.0.0.1:5000/search_posts_by_descs'
 updater = Updater(token=telegram_bot_token, use_context=True)
+
 dispatcher = updater.dispatcher
-admin_ids = []  
+
+# admin_ids = os.environ.get('tg_bot_admin_ids').split()
+
+
 description_changes = False
 description_appends = False
 photo_appends = False
@@ -132,6 +136,7 @@ def start_new_post(update, context):
     
 
 def button_callback(update, context):
+    global user_id
     try:
         if user_id==None:
             user_id = int(update.message.from_user.id)
