@@ -9,23 +9,47 @@ from flask_admin.helpers import url_for
 from flask_admin.model.template import macro
 from config_loader import *
 
+
 UPLOAD_FOLDER = './media'
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'mp4'}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'mp4'} # media accptable format
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI # config setup
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
 
 db = SQLAlchemy(app)
 
 
+class CreatePostView(BaseView):
+    @expose('/', methods=['GET'])
+    def index(self):
+        return self.render('admin/create_post.html', url_for=url_for)
+
+
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    description = db.Column(db.String(255), nullable=False)
+    tags = db.Column(db.String(255))
+    photos = db.Column(db.String(255))  # Storing file paths to photos in the database
+    video = db.Column(db.String(255))  # Storing file paths to video in the database
+
+    def __repr__(self):
+        return f"Post(id={self.id}, description={self.description}, tags={self.tags})"
+
+
+
+
 def allowed_file(filename):
+    ## checking if file is allowed to be submitted
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
 @app.route('/admin/create_post/', methods=['POST'])
 def admin_create_post():
+    # post creation on admin panel "Create Post"
     description = request.form.get('description')
     tags = request.form.get('tags')
     photos = request.files.getlist('photos')
@@ -56,35 +80,12 @@ def admin_create_post():
 
     return redirect(url_for('admin.index'))
 
-class CreatePostView(BaseView):
-    @expose('/', methods=['GET'])
-    def index(self):
-        return self.render('admin/create_post.html', url_for=url_for)
-
-
-
-
-
-
-
-
-
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    description = db.Column(db.String(255), nullable=False)
-    tags = db.Column(db.String(255))
-    photos = db.Column(db.String(255))  # Storing file paths to photos in the database
-    video = db.Column(db.String(255))  # Storing file paths to video in the database
-
-    def __repr__(self):
-        return f"Post(id={self.id}, description={self.description}, tags={self.tags})"
-
 
 
 
 @app.route('/admin/delete_post/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
+    # for post deletion access from chat
     post = db.session.get(Post, post_id)
     if post:
         db.session.delete(post)
@@ -96,14 +97,11 @@ def delete_post(post_id):
 
 @app.route('/search_posts_by_tags', methods=['GET', 'POST'])
 def search_posts_by_tags():
+    # search by tags, submitted by user, return posts that have all those tags
     search_query = request.args.get('query')
 
-
     words = search_query.split()
-    posts = []
-    posts_id = []
-    
-    
+    posts = []    
     
     if len(words)>0:
         posts_prom = Post.query.filter(Post.tags.contains(words[0]))
@@ -122,6 +120,7 @@ def search_posts_by_tags():
 
 @app.route('/search_posts_by_descs', methods=['GET', 'POST'])
 def search_posts_by_desc():
+    # search by piece of description, submitted by user, return posts that have that has user-input as a part of theirs description 
     search_query = request.args.get('query')
 
     words = search_query.split()
@@ -139,26 +138,17 @@ def search_posts_by_desc():
         
     return jsonify(posts), 200
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-
-    def __repr__(self):
-        return self.username
-
-with app.app_context():
-    db.create_all()
-    
-admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
-admin.add_view(ModelView(User, db.session))
-
-
-admin.add_view(CreatePostView(name='Create Post', endpoint='create_post'))
-
-admin.add_view(ModelView(Post, db.session))
 
 if __name__ == "__main__":
+    
+    with app.app_context():
+        db.create_all()
+        
+    admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
+
+    admin.add_view(CreatePostView(name='Create Post', endpoint='create_post'))
+
+    admin.add_view(ModelView(Post, db.session))
     app.debug=True
     app.run()
 

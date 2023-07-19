@@ -13,7 +13,7 @@ draft_db = []
 current_post = []
 
 def add_photos(update, context):
-
+    # part of s callback for photo-submission
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton("Submit Photo 1", callback_data="submit_1")]
     ])
@@ -21,6 +21,7 @@ def add_photos(update, context):
 
 
 def delete_whole_post(update, context):
+    # part of a callback to make a delete-request to db to delete a post (admin accessed)
     current_post.clear()
     
     photos.clear()
@@ -30,6 +31,7 @@ def delete_whole_post(update, context):
     return 'ok'
 
 def done(update, context):
+    # part of a callback to make a submit-request to db to submit a post (admin accessed)
     if len(descriptions)!=0 or len(tags)!=0 or len(photos)!=0 or len(videos)!=0:
         context.bot.send_message(chat_id=update.effective_chat.id, text=f"{current_post}")
         data = {
@@ -76,6 +78,7 @@ def done(update, context):
 
             
 def done_ph(update, context):
+    # part of a callback to make a submit-request to db to submit a post (admin accessed)
     chat_id = update.effective_chat.id
     args = context.args
     
