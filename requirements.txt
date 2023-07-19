@@ -1,1 +1,7 @@
 flask
+Flask-SQLAlchemy
+Flask-Admin
+pymysql
+flsk_stp
+python-telegram-bot
+werkzeug.utils

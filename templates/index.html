@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Post</title>
+</head>
+<body>
+    <h1>Create a New Post</h1>
+    <form method="POST" action="/create_post" enctype="multipart/form-data">
+        <label for="description">Description:</label>
+        <input type="text" name="description" required><br><br>
+
+        <label for="tags">Tags:</label>
+        <input type="text" name="tags"><br><br>
+
+        <label for="photos">Photos:</label>
+        <input type="file" name="photos" multiple required><br><br>
+
+        <label for="video">Video:</label>
+        <input type="file" name="video" required><br><br>
+
+        <input type="submit" value="Create Post">
+    </form>
+</body>
+</html>
