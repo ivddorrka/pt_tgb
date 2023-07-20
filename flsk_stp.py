@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, redirect, url_for, render_template, request
+from flask import Flask, jsonify, redirect, url_for, render_template, request, session
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin, BaseView, expose
@@ -19,6 +19,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI # config setup
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
 
 db = SQLAlchemy(app)
+users = {
+    'user123': {
+        'user_id': 123,
+        'password': 'password123'
+    }
+}
 
 
 class CreatePostView(BaseView):
@@ -40,12 +46,82 @@ class Post(db.Model):
 
 
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(80), nullable=False)
+    
+    def __repr__(self):
+        return f"User(id={self.id}, username={self.username}, password={self.password})"
+
+# class UserView(ModelView):
+#     column_searchable_list = ['username']
+#     form_columns = ['username', 'password']
+
+class LoginView(BaseView):
+    @expose('/', methods=['GET', 'POST'])
+    def index(self):
+        # Handle the login logic here
+        if user_is_authenticated():  
+            return redirect(url_for('admin.index'))
+        else:
+            return render_template('login.html')
+
+class LogoutView(BaseView):
+    @expose('/', methods=['GET', 'POST'])
+    def index(self):
+        # Handle the login logic here
+        if user_is_authenticated():  
+            return redirect('/logout')
+        else:
+            return render_template('login.html')
+# LogoutView
+
+
+def user_is_authenticated():
+    # Assuming you store the user ID in the 'user_id' key of the session
+    user_id = session.get('user_id')
+    return user_id is not None
 
 def allowed_file(filename):
     ## checking if file is allowed to be submitted
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@app.route('/logout')
+def logout():
+    # Clear the user_id from the session to log out the user
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Retrieve the user from the database based on the given username
+        user = User.query.filter_by(username=username).first()
+
+        if user and user.password == password:
+            # If the login is successful, store the user_id in the session
+            session['user_id'] = user.id
+            return redirect('/admin')  # Redirect to the dashboard or any other page
+        else:
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+
+@app.route('/')
+def dashboard():
+    # Check if the user is logged in by verifying the presence of 'user_id' in the session
+    if 'user_id' in session:
+        return redirect('/admin')
+    else:
+        return redirect('/login')
+    
 
 @app.route('/admin/create_post/', methods=['POST'])
 def admin_create_post():
@@ -141,14 +217,22 @@ def search_posts_by_desc():
 
 if __name__ == "__main__":
     
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
         
     admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
 
     admin.add_view(CreatePostView(name='Create Post', endpoint='create_post'))
 
     admin.add_view(ModelView(Post, db.session))
+    admin.add_view(ModelView(User, db.session))
+    # admin.add_view(UserView(User, db.session))
+    admin.add_view(LoginView(name='Login', endpoint='login'))
+    admin.add_view(LogoutView(name='Logout', endpoint='logout'))
+    
+    with app.app_context():
+        db.create_all()
+        
     app.debug=True
     app.run()
 
